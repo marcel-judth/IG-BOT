@@ -3,6 +3,10 @@ import os
 import time
 
 import configparser
+import openpyxl
+from datetime import datetime
+
+
 
 class InstagramBot:
 
@@ -44,16 +48,16 @@ class InstagramBot:
          self.driver.get('{}/{}/'.format(self.base_url, user))
 
 
-     def follow_user(self, user):
-         self.nav_user(user)
-         follow_button = self.driver.find_element_by_xpath("//button[contains(text(), 'Follow')]")
-         follow_button.click()
+    #  def follow_user(self, user):
+    #      self.nav_user(user)
+    #      follow_button = self.driver.find_element_by_xpath("//button[contains(text(), 'Follow')]")
+    #      follow_button.click()
 
 
-     def unfollow_user(self, user):
-         self.nav_user(user)
-         follow_button = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/header/section/div[1]/a/button')
-         follow_button.click()
+    #  def unfollow_user(self, user):
+    #      self.nav_user(user)
+    #      follow_button = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/div/header/section/div[1]/a/button')
+    #      follow_button.click()
      
 
      def search_tag(self, tag):
@@ -64,37 +68,42 @@ class InstagramBot:
         """
         self.driver.get(self.get_tag_url.format(tag))
 
-     def click_thumbnail(self, index):
+     def click_thumbnail(self):
         first_thumbnail = self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/article/div[1]/div/div/div[1]/div[1]/a/div')
         first_thumbnail.click()
         time.sleep(0.5)
         
 
 
-     def like_users_per_hashtag(self, number_users):
-         i = 0
-         while i < number_users:
-            time.sleep(2)
-            button_like = self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[2]/section[1]/span[1]/button/span')
-            if button_like.text == '':
-                button_like.click()
+     def follow_like_per_hashtag(self, number_users):
+         count = 0
+         book = openpyxl.load_workbook('hello_world.xlsx')
+         sheet = book.active
 
+         while count < number_users:
+            time.sleep(5)
 
             if self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button').text == 'Follow':
-                #click follow button
-                self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button').click()
+                self.like_post()
+                username = self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[1]/h2/a').text
+                sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
+                self.follow_user()
                 time.sleep(1)
-                #click next button
-            #     self.driver.find_element_by_link_text('Next').click()
-            # else:
-            #     #click next button
-            self.driver.find_element_by_link_text('Next').click()
-
-            time.sleep(1)
-            i += 1
-
         
+            self.click_next()
+            count += 1
+         book.save('hello_world.xlsx')
 
+     def click_next(self):
+         self.driver.find_element_by_link_text('Next').click()
+
+     def follow_user(self):
+          self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button').click()
+     
+     def like_post(self):
+          button_like = self.driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[2]/section[1]/span[1]/button/span')
+          if button_like.text == '':
+            button_like.click()
             
 
 
@@ -107,31 +116,14 @@ if __name__ == '__main__':
     cparser.read(config_path)
     username = cparser['AUTH']['USERNAME']
     password = cparser['AUTH']['PASSWORD']
-
+    hashtags = cparser['IG_TAGS']['TAGS']
+    hashtags = hashtags.split(",")
     ig_bot = InstagramBot('lenson_cricket', 'LenDomik2201')
-    #ig_bot.nav_user('garyvee')
-    # ig_bot.search_tag('fitness')
-    # ig_bot.click_thumbnail(1)
-    # ig_bot.like_users_per_hashtag(200)
-    # ig_bot.search_tag('flirt')
-    # ig_bot.click_thumbnail(1)
-    # ig_bot.like_users_per_hashtag(200)
-    # ig_bot.search_tag('zara')
-    # ig_bot.click_thumbnail(1)
-    # ig_bot.like_users_per_hashtag(20)
-    ig_bot.search_tag('bloggerstyle')
-    ig_bot.click_thumbnail(1)
-    ig_bot.like_users_per_hashtag(20)
     time.sleep(1)
-    ig_bot.search_tag('streetstyle')
-    ig_bot.click_thumbnail(1)
-    ig_bot.like_users_per_hashtag(20)
-    time.sleep(1)
-    ig_bot.search_tag('anajohnson')
-    ig_bot.click_thumbnail(1)
-    ig_bot.like_users_per_hashtag(20)
-    time.sleep(1)
-    ig_bot.search_tag('nakdfashion')
-    ig_bot.click_thumbnail(1)
-    ig_bot.like_users_per_hashtag(20)
-    time.sleep(1)
+
+    for tag in hashtags:
+        tag = tag.strip()
+        ig_bot.search_tag(tag)
+        time.sleep(2)
+        ig_bot.click_thumbnail()
+        ig_bot.follow_like_per_hashtag(1)
