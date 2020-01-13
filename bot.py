@@ -11,6 +11,8 @@ config_path = './config.ini'
 cparser = configparser.ConfigParser()
 cparser.read(config_path)
 
+
+
 class InstagramBot:
 
      def __init__(self, username, password):
@@ -75,7 +77,7 @@ class InstagramBot:
                 username = self.driver.find_element_by_xpath(cparser['XPATHS']['USERNAME_LABEL']).text
                 sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
                 self.follow_user()
-                time.sleep(1)
+                time.sleep(30)
         
             self.click_next()
             count += 1
@@ -113,4 +115,4 @@ if __name__ == '__main__':
         ig_bot.search_tag(tag)
         time.sleep(2)
         ig_bot.click_first_thumbnail()
-        ig_bot.follow_like_per_hashtag(3)
+        ig_bot.follow_like_per_hashtag(100)
