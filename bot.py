@@ -42,6 +42,7 @@ class InstagramBot:
          self.driver.find_element_by_name('password').send_keys(self.password)
 
          self.driver.find_element_by_xpath(cparser['XPATHS']['LOGIN_BUTTON']).click()
+
          time.sleep(2)
 
 
@@ -115,4 +116,4 @@ if __name__ == '__main__':
         ig_bot.search_tag(tag)
         time.sleep(2)
         ig_bot.click_first_thumbnail()
-        ig_bot.follow_like_per_hashtag(100)
+        ig_bot.follow_like_per_hashtag(cparser['MISC']['USERS_PER_HASHTAG'])

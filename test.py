@@ -1,19 +1,22 @@
-import pandas as pd
+import configparser
+import openpyxl
+from datetime import datetime
 
-# Assign spreadsheet filename to `file`
-file = 'followed_users.xlsx'
+#global variables
+config_path = './config.ini'
+cparser = configparser.ConfigParser()
+cparser.read(config_path)
 
-# Load spreadsheet
-xl = pd.ExcelFile(file)
 
-# Print the sheet names
-print(xl.sheet_names)
+#program
+book = openpyxl.load_workbook('output1.xlsx')
+worksheet = book['USERS']
 
-# Load a sheet into a DataFrame by name: df1
-df = xl.parse('Sheet')
-xl.
-df = df.sort_values('time')
 
-for i in range(len(df)) : 
-    
-  print(df.loc[i, "username"], df.loc[i, "time"]) 
+for idx, row in enumerate(worksheet.rows):
+    dateFollowed = datetime.strptime(row[1].value, "%m/%d/%Y, %H:%M:%S")
+    print(row[0].value)
+    print((datetime.now() - dateFollowed).days)
+    if((datetime.now() - dateFollowed).days >= 1):
+      worksheet.delete_rows(idx + 1, 1)
+      book.save('output.xlsx')
