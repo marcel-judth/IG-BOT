@@ -1,4 +1,5 @@
 from selenium import webdriver
+from random import randint
 import os
 import time
 
@@ -26,6 +27,10 @@ class InstagramBot:
 
          Attributes:
             driver:Selenium.webdriver.Chrome: The Chromedriver that is used to automate browser actions
+
+         Restirctions
+            follow: Instagram allows under 200 followers per hour and maximal 1000 follows per day
+            liking: same
          """
          
          self.username = username
@@ -78,12 +83,31 @@ class InstagramBot:
                 username = self.driver.find_element_by_xpath(cparser['XPATHS']['USERNAME_LABEL']).text
                 sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
                 self.follow_user()
-                time.sleep(30)
-        
+                book.save(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
+                time.sleep(randint(30, 40))
+
             self.click_next()
             count += 1
-         book.save(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
+            
+         
+     def follow_users_follower(self, user):
+         self.nav_user(user)
+         buttons = self.driver.find_elements_by_class_name('-nal3')
 
+         for button in buttons:
+             if 'followers' in button.text:
+                button.click()
+                break
+        
+         index = 0
+         buttons = self.driver.find_elements_by_xpath('//button[text()="Following"]')
+         while len(buttons) > 0 and index < int(cparser['MISC']['FOLLOWERS_PER_USER']):
+            buttons = self.driver.find_elements_by_xpath('//button[text()="Following"]')
+            
+            if len(buttons) > 0:
+                buttons[0].location_once_scrolled_into_view
+                buttons[0].click()
+            index += 1
 
      def click_next(self):
          self.driver.find_element_by_link_text('Next').click()
@@ -109,11 +133,11 @@ if __name__ == '__main__':
     hashtags = cparser['IG_TAGS']['TAGS']
     hashtags = hashtags.split(",")
     ig_bot = InstagramBot(username, password)
-    time.sleep(1)
-
-    for tag in hashtags:
-        tag = tag.strip()
-        ig_bot.search_tag(tag)
-        time.sleep(2)
-        ig_bot.click_first_thumbnail()
-        ig_bot.follow_like_per_hashtag(cparser['MISC']['USERS_PER_HASHTAG'])
+    time.sleep(4)
+    ig_bot.follow_users_follower('pamela_rf')
+    # for tag in hashtags:
+    #     tag = tag.strip()
+    #     ig_bot.search_tag(tag)
+    #     time.sleep(2)
+    #     ig_bot.click_first_thumbnail()
+    #     ig_bot.follow_like_per_hashtag(int(cparser['MISC']['USERS_PER_HASHTAG']))

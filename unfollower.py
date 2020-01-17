@@ -6,6 +6,7 @@ import configparser
 import openpyxl
 from datetime import datetime
 import pandas as pd
+from random import randint
 
 
 #global variables
@@ -59,7 +60,7 @@ class IGUnfollower:
             time.sleep(2)
             confirmButton = self.driver.find_element_by_xpath(cparser['XPATHS']['CONFIRMATION_BUTTON'])
             confirmButton.click()
-            time.sleep(30)
+            time.sleep(randint(30, 40))
 
          print('not unfollowed')
             
