@@ -1,22 +1,21 @@
-import configparser
-import openpyxl
-from datetime import datetime
-
-#global variables
-config_path = './config.ini'
-cparser = configparser.ConfigParser()
-cparser.read(config_path)
+import instaloader
+L = instaloader.Instaloader()
+username = 'lenson_cricket'
+password = 'LenDomik2201'
+# Login or load session
+L.login(username, password)        # (login)
 
 
-#program
-book = openpyxl.load_workbook('output1.xlsx')
-worksheet = book['USERS']
+# Obtain profile metadata
+profile = instaloader.Profile.from_username(L.context, "prada")
+
+# Print list of followees
 
 
-for idx, row in enumerate(worksheet.rows):
-    dateFollowed = datetime.strptime(row[1].value, "%m/%d/%Y, %H:%M:%S")
-    print(row[0].value)
-    print((datetime.now() - dateFollowed).days)
-    if((datetime.now() - dateFollowed).days >= 1):
-      worksheet.delete_rows(idx + 1, 1)
-      book.save('output.xlsx')
+file = open("prada_followers.txt","a+")
+for followee in profile.get_followers():
+    username = followee.username
+    file.write(username + "\n")
+    print(username)
+
+file.close()

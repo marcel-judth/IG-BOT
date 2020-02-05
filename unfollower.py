@@ -7,6 +7,7 @@ import openpyxl
 from datetime import datetime
 import pandas as pd
 from random import randint
+import sys
 
 
 #global variables
@@ -53,17 +54,17 @@ class IGUnfollower:
          self.driver.get(cparser['IG_URLS']['NAV_USER'].format(username))
 
      def unfollow_user(self, username):
-         self.nav_user(username)
-         unfollow_button = self.driver.find_element_by_css_selector('Button')
-         if unfollow_button.text == 'Following':
-            unfollow_button.click()
-            time.sleep(2)
-            confirmButton = self.driver.find_element_by_xpath(cparser['XPATHS']['CONFIRMATION_BUTTON'])
-            confirmButton.click()
-            time.sleep(randint(30, 40))
-
-         print('not unfollowed')
-            
+         try:
+            self.nav_user(username)
+            unfollow_button = self.driver.find_element_by_css_selector('Button')
+            if unfollow_button.text == 'Following':
+                unfollow_button.click()
+                time.sleep(2)
+                confirmButton = self.driver.find_element_by_xpath(cparser['XPATHS']['CONFIRMATION_BUTTON'])
+                confirmButton.click()
+                time.sleep(randint(30, 40))  
+         except:
+            print("Unexpected error:", sys.exc_info()[0])
 
 
 

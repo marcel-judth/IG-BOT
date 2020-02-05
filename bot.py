@@ -6,11 +6,15 @@ import time
 import configparser
 import openpyxl
 from datetime import datetime
+import instaloader
+import sys
+
 
 #global variables
 config_path = './config.ini'
 cparser = configparser.ConfigParser()
 cparser.read(config_path)
+loader = instaloader.Instaloader()
 
 
 
@@ -79,42 +83,30 @@ class InstagramBot:
             time.sleep(5)
 
             if self.driver.find_element_by_xpath(cparser['XPATHS']['FOLLOW_BUTTON']).text == 'Follow':
-                self.like_post()
-                username = self.driver.find_element_by_xpath(cparser['XPATHS']['USERNAME_LABEL']).text
-                sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
-                self.follow_user()
-                book.save(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
-                time.sleep(randint(30, 40))
+                try:
+                 time.sleep(2)
+                 self.like_post()
+                 username = self.driver.find_element_by_xpath(cparser['XPATHS']['USERNAME_LABEL']).text
+                 sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
+                 time.sleep(2)
+                 self.follow_user()
+                 book.save(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
+                 time.sleep(randint(25, 35))
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+                    time.sleep(4)
 
             self.click_next()
             count += 1
             
-         
-     def follow_users_follower(self, user):
-         self.nav_user(user)
-         buttons = self.driver.find_elements_by_class_name('-nal3')
-
-         for button in buttons:
-             if 'followers' in button.text:
-                button.click()
-                break
-        
-         index = 0
-         buttons = self.driver.find_elements_by_xpath('//button[text()="Following"]')
-         while len(buttons) > 0 and index < int(cparser['MISC']['FOLLOWERS_PER_USER']):
-            buttons = self.driver.find_elements_by_xpath('//button[text()="Following"]')
-            
-            if len(buttons) > 0:
-                buttons[0].location_once_scrolled_into_view
-                buttons[0].click()
-            index += 1
 
      def click_next(self):
          self.driver.find_element_by_link_text('Next').click()
 
 
      def follow_user(self):
-          self.driver.find_element_by_xpath(cparser['XPATHS']['FOLLOW_BUTTON']).click()
+        self.driver.find_element_by_xpath(cparser['XPATHS']['FOLLOW_BUTTON']).click()
+        #   self.driver.find_element_by_xpath('//button[text()="Follow"]').click()
      
 
      def like_post(self):
@@ -122,7 +114,23 @@ class InstagramBot:
           if button_like.text == '':
             button_like.click()
             
+     def follow_users_followers(self, user, maxFollowers):
+         loader.login(self.username, self.password)
+         profile = instaloader.Profile.from_username(loader.context, user)
+         book = openpyxl.load_workbook(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
+         sheet = book.active
 
+
+         for index, follower in profile.get_followers():
+             if index >= maxFollowers:
+                break
+             username = follower.username
+             self.nav_user(username)
+             time.sleep(2)
+             self.follow_user()
+             sheet.append([username, datetime.now().strftime("%m/%d/%Y, %H:%M:%S")])
+             book.save(cparser['FILENAMES']['FOLLOWED_USERS_FILE'])
+             time.sleep(randint(30, 40))
 
 
 
@@ -134,10 +142,15 @@ if __name__ == '__main__':
     hashtags = hashtags.split(",")
     ig_bot = InstagramBot(username, password)
     time.sleep(4)
-    ig_bot.follow_users_follower('pamela_rf')
-    # for tag in hashtags:
-    #     tag = tag.strip()
-    #     ig_bot.search_tag(tag)
-    #     time.sleep(2)
-    #     ig_bot.click_first_thumbnail()
-    #     ig_bot.follow_like_per_hashtag(int(cparser['MISC']['USERS_PER_HASHTAG']))
+
+
+    # ig_bot.follow_users_followers(cparser['MISC']['USERNAME_FOLLOWERS'], int(cparser['MISC']['FOLLOWERS_PER_USER']))
+
+
+
+    for tag in hashtags:
+        tag = tag.strip()
+        ig_bot.search_tag(tag)
+        time.sleep(2)
+        ig_bot.click_first_thumbnail()
+        ig_bot.follow_like_per_hashtag(int(cparser['MISC']['USERS_PER_HASHTAG']))
